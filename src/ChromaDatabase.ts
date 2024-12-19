@@ -275,15 +275,17 @@ export default class ChromaDatabase implements Database {
         _dbOptions?: DatabaseInternalOptions
     ): Promise<Record<string, any>[]> {
         let { ids, where, skipIds } = this.buildQuery(query)
+        let matches: Pick<GetResponse, 'ids' | 'metadatas'> | undefined
 
         const { limit, includeFields } = options ?? {}
         const col = await this.getCollection(collection)
-        let matches: Pick<GetResponse, 'ids' | 'metadatas'> | undefined
 
         if (where?.$prompt) {
+            const { $prompt, ...rest } = where
             const queryResults = await col.query({
-                queryTexts: [where?.$prompt],
+                queryTexts: [$prompt],
                 nResults: 1,
+                where: Object.keys(rest).length > 0 ? rest : undefined,
             })
 
             matches = {
@@ -303,6 +305,24 @@ export default class ChromaDatabase implements Database {
             return []
         }
 
+        let records: Record<string, any>[] = this.mapResultsToRecords(
+            limit,
+            matches,
+            skipIds
+        )
+
+        if (includeFields) {
+            records = this.filterFieldsByInclude(records, includeFields)
+        }
+
+        return records
+    }
+
+    private mapResultsToRecords(
+        limit: number | undefined,
+        matches: Pick<GetResponse, 'ids' | 'metadatas'>,
+        skipIds: string[]
+    ) {
         let records: Record<string, any>[] = []
         const total = limit ?? matches.ids.length
         for (let i = 0; i < total; i++) {
@@ -315,21 +335,23 @@ export default class ChromaDatabase implements Database {
                 })
             }
         }
-
-        if (includeFields) {
-            const trimmedRecords: Record<string, any>[] = []
-            // eslint-disable-next-line @typescript-eslint/prefer-for-of
-            for (let c = 0; c < records.length; c++) {
-                const record: Record<string, any> = {}
-                for (const key of includeFields) {
-                    record[key] = records[c][key]
-                }
-                trimmedRecords.push(record)
-            }
-            records = trimmedRecords
-        }
-
         return records
+    }
+
+    private filterFieldsByInclude(
+        records: Record<string, any>[],
+        includeFields: string[]
+    ) {
+        const trimmedRecords: Record<string, any>[] = []
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
+        for (let c = 0; c < records.length; c++) {
+            const record: Record<string, any> = {}
+            for (const key of includeFields) {
+                record[key] = records[c][key]
+            }
+            trimmedRecords.push(record)
+        }
+        return trimmedRecords
     }
 
     private buildQuery(query?: Record<string, any> | undefined) {
@@ -351,7 +373,7 @@ export default class ChromaDatabase implements Database {
         }
 
         if (where) {
-            const { $or, ...rest } = where
+            const { $or, $prompt, ...rest } = where
             if ($or) {
                 where.$or = $or
             } else {
@@ -366,6 +388,9 @@ export default class ChromaDatabase implements Database {
                         $and,
                     }
                 }
+            }
+            if ($prompt) {
+                where.$prompt = $prompt
             }
         }
 

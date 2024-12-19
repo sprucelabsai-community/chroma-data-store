@@ -275,11 +275,40 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         assert.isLength(results, 2, 'Expected to find two results')
     }
 
-    private static async findByPrompt(prompt: string, limit?: number) {
+    @test()
+    protected static async canSearchByPromptAndDocumentFields() {
+        const created = await this.createSearchableDocuments()
+        const results = await this.findByPrompt('cheese', 1, { hello: 'world' })
+        const expected = created[3]
+        assert.isEqualDeep(
+            results[0],
+            expected,
+            'Searching based on $prompt and document fields did not return the expected match'
+        )
+    }
+
+    @test()
+    protected static async canSearchSamePromptAndDifferentDocumentFields() {
+        const created = await this.createSearchableDocuments()
+        const results = await this.findByPrompt('cheese', 1, { world: 'hello' })
+        const expected = created[4]
+        assert.isEqualDeep(
+            results[0],
+            expected,
+            'Searching based on $prompt and document fields did not return the expected match'
+        )
+    }
+
+    private static async findByPrompt(
+        prompt: string,
+        limit?: number,
+        query?: Record<string, any>
+    ) {
         const results = await this.db.find(
             this.collectionName,
             {
                 $prompt: prompt,
+                ...query,
             },
             {
                 limit: limit ?? 1,
@@ -299,6 +328,8 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
             { name: 'peter piper picked a pepper' },
             { name: 'this is down' },
             { cheesey: 'this is a burrito' },
+            { stinky: 'cheese', hello: 'world' },
+            { stinky: 'cheese', world: 'hello' },
         ])
     }
 
