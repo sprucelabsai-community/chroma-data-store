@@ -1,0 +1,476 @@
+import {
+    CreateOptions,
+    Database,
+    DatabaseInternalOptions,
+    DataStoresError,
+    generateId,
+    Index,
+    IndexWithFilter,
+    QueryOptions,
+} from '@sprucelabs/data-stores'
+import { assertOptions, flattenValues, expandValues } from '@sprucelabs/schema'
+import { NULL_PLACEHOLDER } from '@sprucelabs/test-utils'
+import {
+    ChromaClient,
+    OllamaEmbeddingFunction,
+    Metadatas,
+    IncludeEnum,
+    Where,
+} from 'chromadb'
+import { Collection } from './chroma.types'
+import SpruceError from './errors/SpruceError'
+
+export default class ChromaDatabase implements Database {
+    private connectionString: string
+    private client!: ChromaClient
+    private _isConnected = false
+    private embeddings: OllamaEmbeddingFunction
+    private collections: Record<string, Collection> = {}
+
+    public constructor(connectionString: string) {
+        assertOptions({ connectionString }, ['connectionString'])
+
+        this.embeddings = new OllamaEmbeddingFunction({
+            model: 'llama3.2',
+            url: 'http://localhost:11434/api/embeddings',
+        })
+
+        if (!connectionString.startsWith('chroma://')) {
+            throw new DataStoresError({
+                code: 'INVALID_DB_CONNECTION_STRING',
+            })
+        }
+
+        this.connectionString = connectionString.replace('chroma://', 'http://')
+    }
+
+    public async syncUniqueIndexes(
+        _collectionName: string,
+        _indexes: Index[]
+    ): Promise<void> {}
+
+    public async syncIndexes(
+        _collectionName: string,
+        _indexes: Index[]
+    ): Promise<void> {
+        throw new SpruceError({
+            code: 'FEATURE_NOT_SUPPORTED',
+            operation: 'syncIndexes',
+        })
+    }
+
+    public async dropIndex(
+        _collectionName: string,
+        _index: Index
+    ): Promise<void> {
+        throw new SpruceError({
+            code: 'FEATURE_NOT_SUPPORTED',
+            operation: 'dropIndex',
+        })
+    }
+
+    public async getUniqueIndexes(
+        _collectionName: string
+    ): Promise<IndexWithFilter[]> {
+        throw new SpruceError({
+            code: 'FEATURE_NOT_SUPPORTED',
+            operation: 'getUniqueIndexes',
+        })
+    }
+
+    public async getIndexes(
+        _collectionName: string
+    ): Promise<IndexWithFilter[]> {
+        throw new SpruceError({
+            code: 'FEATURE_NOT_SUPPORTED',
+            operation: 'getIndexes',
+        })
+    }
+
+    public isConnected(): boolean {
+        return this._isConnected
+    }
+
+    public generateId(): string {
+        return generateId()
+    }
+
+    public async connect(): Promise<void> {
+        this.client = new ChromaClient({ path: this.connectionString })
+        try {
+            await this.client.heartbeat()
+        } catch (err: any) {
+            throw new DataStoresError({
+                code: 'UNABLE_TO_CONNECT_TO_DB',
+                originalError: err,
+            })
+        }
+        this._isConnected = true
+    }
+
+    public async close(): Promise<void> {
+        this._isConnected = false
+    }
+
+    public getShouldAutoGenerateId?(): boolean {
+        return true
+    }
+
+    public async createOne(
+        collection: string,
+        values: Record<string, any>,
+        _options?: CreateOptions
+    ): Promise<Record<string, any>> {
+        const results = await this.create(collection, [values])
+        return results[0]
+    }
+
+    private async getCollection(collection: string) {
+        if (!this.collections[collection]) {
+            this.collections[collection] =
+                await this.client.getOrCreateCollection({
+                    name: collection,
+                    embeddingFunction: this.embeddings,
+                })
+        }
+
+        return this.collections[collection]
+    }
+
+    private buildPrompt(values: Record<string, any>) {
+        let prompt = ''
+        for (const key in values) {
+            const value = values[key]
+            if (typeof value === 'object') {
+                prompt += `${key}:\n\t${this.buildPrompt(value)}\n`
+            } else {
+                prompt += `${key}: ${value}\n`
+            }
+        }
+        return prompt.trim()
+    }
+
+    public async create(
+        collection: string,
+        values: Record<string, any>[]
+    ): Promise<Record<string, any>[]> {
+        const col = await this.getCollection(collection)
+        const { documents, ids, metadatas } = this.splitValues(values)
+
+        await col.add({
+            documents,
+            ids,
+            metadatas,
+        })
+
+        return this.find(collection, { id: { $in: ids } })
+    }
+
+    private splitValues(values: Record<string, any>[]) {
+        const ids = []
+        const documents = []
+        const metadatas: Metadatas = []
+
+        for (const v of values) {
+            const { id = this.generateId(), ...values } = v
+            ids.push(id)
+            documents.push(this.buildPrompt(values))
+            const flattened = this.flattenValues(values)
+            metadatas.push(flattened)
+        }
+        return { documents, ids, metadatas }
+    }
+
+    private flattenValues(values: Record<string, any>) {
+        const flattened = flattenValues(values, [
+            '$or',
+            '*.$gt',
+            '*.$gte',
+            '*.$lt',
+            '*.$lte',
+            '*.$ne',
+        ])
+        this.dropInNullPlaceholders(flattened)
+        return flattened
+    }
+
+    private dropInNullPlaceholders(flattened: Record<string, any>) {
+        for (const key in flattened) {
+            if (flattened[key] === undefined) {
+                flattened[key] = null
+            }
+
+            if (flattened[key] === null) {
+                flattened[key] = NULL_PLACEHOLDER
+            }
+
+            if (typeof flattened[key] === 'object') {
+                this.dropInNullPlaceholders(flattened[key])
+            }
+        }
+    }
+
+    public async dropCollection(name: string): Promise<void> {
+        await this.client.deleteCollection({ name })
+    }
+
+    public async dropDatabase(): Promise<void> {
+        const collections = await this.client.listCollections()
+        await Promise.all(
+            collections.map((col) => this.dropCollection(col.name))
+        )
+    }
+
+    public async findOne(
+        collection: string,
+        query?: Record<string, any>,
+        options?: QueryOptions,
+        dbOptions?: DatabaseInternalOptions
+    ): Promise<Record<string, any> | null> {
+        const matches = await this.find(
+            collection,
+            query,
+            { ...options, limit: 1 },
+            dbOptions
+        )
+        return matches[0] ?? null
+    }
+
+    public async find(
+        collection: string,
+        query?: Record<string, any>,
+        options?: QueryOptions,
+        _dbOptions?: DatabaseInternalOptions
+    ): Promise<Record<string, any>[]> {
+        let { ids, where, skipIds } = this.buildQuery(query)
+
+        const { limit, includeFields } = options ?? {}
+        const col = await this.getCollection(collection)
+
+        const matches = await col.get({
+            ids,
+            include: ['metadatas' as IncludeEnum],
+            where,
+            limit: limit == 0 ? 1 : limit,
+        })
+
+        if (!matches.ids[0]) {
+            return []
+        }
+
+        let records: Record<string, any>[] = []
+        const total = limit ?? matches.ids.length
+        for (let i = 0; i < total; i++) {
+            const values = matches.metadatas[i] ?? {}
+            const id = matches.ids[i]
+            if (!skipIds.includes(id)) {
+                records.push({
+                    id,
+                    ...this.expandValues(values),
+                })
+            }
+        }
+
+        if (includeFields) {
+            const trimmedRecords: Record<string, any>[] = []
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
+            for (let c = 0; c < records.length; c++) {
+                const record: Record<string, any> = {}
+                for (const key of includeFields) {
+                    record[key] = records[c][key]
+                }
+                trimmedRecords.push(record)
+            }
+            records = trimmedRecords
+            debugger
+        }
+
+        return records
+    }
+
+    private buildQuery(query?: Record<string, any> | undefined) {
+        const { id, ...rest } = query ?? {}
+        let ids: string[] | undefined
+        let where: Where | undefined
+
+        if (id?.$in) {
+            ids = id.$in
+        } else if (id) {
+            ids = [id]
+        } else if (query) {
+            where = rest
+        }
+
+        if (where?.$or && (where.$or as Where[]).length === 1) {
+            //@ts-ignore
+            where = where.$or[0]
+        }
+
+        if (where) {
+            const { $or, ...rest } = where
+            if ($or) {
+                where.$or = $or
+            } else {
+                where = this.flattenValues(rest)
+                if (Object.keys(where).length > 1) {
+                    const $and = []
+                    for (const key in where) {
+                        //@ts-ignore
+                        $and.push({ [key]: where[key] })
+                    }
+                    where = {
+                        $and,
+                    }
+                }
+            }
+        }
+
+        const firstId = ids?.[0]
+        const skipIds: string[] = []
+        //@ts-ignore
+        if (firstId?.['$ne']) {
+            //@ts-ignore
+            skipIds.push(firstId.$ne)
+            ids = undefined
+        }
+
+        if (Object.keys(where ?? {}).length === 0) {
+            where = undefined
+        }
+
+        return { ids, where, skipIds }
+    }
+
+    private expandValues(values: Record<string, any>): Record<string, any> {
+        const nulledValues: Record<string, any> = {}
+        for (const key in values) {
+            if (values[key] === NULL_PLACEHOLDER) {
+                nulledValues[key] = null
+            } else {
+                nulledValues[key] = values[key]
+            }
+        }
+        return expandValues(nulledValues)
+    }
+
+    public async updateOne(
+        collection: string,
+        query: Record<string, any>,
+        updates: Record<string, any>,
+        _dbOptions?: DatabaseInternalOptions
+    ): Promise<Record<string, any>> {
+        const col = await this.getCollection(collection)
+        const match = await this.findOne(collection, query)
+
+        if (!match) {
+            throw new DataStoresError({
+                code: 'RECORD_NOT_FOUND',
+                query,
+                storeName: collection,
+            })
+        }
+        const { documents, metadatas } = this.splitValues([updates])
+
+        await col.update({
+            ids: [match.id],
+            documents,
+            metadatas,
+        })
+
+        const { id, ...values } = match
+
+        return { id, ...values, ...updates }
+    }
+
+    public async update(
+        collection: string,
+        query: Record<string, any>,
+        updates: Record<string, any>
+    ): Promise<number> {
+        const matches = await this.find(collection, query)
+        for (const match of matches) {
+            await this.updateOne(collection, { id: match.id }, updates)
+        }
+        return matches.length
+    }
+
+    public async upsertOne(
+        collection: string,
+        query: Record<string, any>,
+        updates: Record<string, any>
+    ): Promise<Record<string, any>> {
+        const col = await this.getCollection(collection)
+        const match = await this.findOne(collection, query)
+        let { documents, ids, metadatas } = this.splitValues([updates])
+
+        if (match?.id) {
+            ids = [match.id]
+        }
+
+        await col.upsert({
+            documents,
+            ids,
+            metadatas,
+        })
+
+        const updated = await this.findOne(collection, { id: ids[0] })
+
+        return updated!
+    }
+
+    public async delete(
+        collection: string,
+        query: Record<string, any>
+    ): Promise<number> {
+        const matches = await this.find(collection, query)
+        const col = await this.getCollection(collection)
+        await col.delete({
+            ids: matches.map((m) => m.id),
+        })
+        return matches.length
+    }
+
+    public async deleteOne(
+        collection: string,
+        query: Record<string, any>
+    ): Promise<number> {
+        const match = await this.findOne(collection, query)
+        await this.delete(collection, { id: match?.id })
+        return match ? 1 : 0
+    }
+
+    public async count(
+        collection: string,
+        query?: Record<string, any>
+    ): Promise<number> {
+        const matches = await this.find(collection, query)
+        return matches.length
+    }
+
+    public async createUniqueIndex(
+        _collection: string,
+        _index: Index
+    ): Promise<void> {
+        throw new SpruceError({
+            code: 'FEATURE_NOT_SUPPORTED',
+            operation: 'createUniqueIndex',
+        })
+    }
+
+    public async createIndex(
+        _collection: string,
+        _index: Index
+    ): Promise<void> {
+        throw new SpruceError({
+            code: 'FEATURE_NOT_SUPPORTED',
+            operation: 'createIndex',
+        })
+    }
+
+    public async query<T>(_query: string, _params?: any[]): Promise<T[]> {
+        throw new SpruceError({
+            code: 'FEATURE_NOT_SUPPORTED',
+            operation: 'query',
+        })
+    }
+}
