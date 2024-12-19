@@ -199,3 +199,7 @@ interface BaseGetParams {
     include?: IncludeEnum[]
     whereDocument?: WhereDocument
 }
+
+export type WhereWithPrompt = Where & {
+    $prompt?: string
+}

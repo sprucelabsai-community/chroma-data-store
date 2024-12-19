@@ -16,8 +16,11 @@ import {
     Metadatas,
     IncludeEnum,
     Where,
+    GetResponse,
+    IDs,
+    Metadata,
 } from 'chromadb'
-import { Collection } from './chroma.types'
+import { Collection, WhereWithPrompt } from './chroma.types'
 import SpruceError from './errors/SpruceError'
 
 export default class ChromaDatabase implements Database {
@@ -275,15 +278,28 @@ export default class ChromaDatabase implements Database {
 
         const { limit, includeFields } = options ?? {}
         const col = await this.getCollection(collection)
+        let matches: Pick<GetResponse, 'ids' | 'metadatas'> | undefined
 
-        const matches = await col.get({
-            ids,
-            include: ['metadatas' as IncludeEnum],
-            where,
-            limit: limit == 0 ? 1 : limit,
-        })
+        if (where?.$prompt) {
+            const queryResults = await col.query({
+                queryTexts: [where?.$prompt],
+                nResults: 1,
+            })
 
-        if (!matches.ids[0]) {
+            matches = {
+                ids: queryResults.ids[0] as IDs,
+                metadatas: queryResults.metadatas[0] as (Metadata | null)[],
+            }
+        } else {
+            matches = await col.get({
+                ids,
+                include: ['metadatas' as IncludeEnum],
+                where,
+                limit: limit == 0 ? 1 : limit,
+            })
+        }
+
+        if (!matches || !matches.ids[0]) {
             return []
         }
 
@@ -319,7 +335,7 @@ export default class ChromaDatabase implements Database {
     private buildQuery(query?: Record<string, any> | undefined) {
         const { id, ...rest } = query ?? {}
         let ids: string[] | undefined
-        let where: Where | undefined
+        let where: WhereWithPrompt | undefined
 
         if (id?.$in) {
             ids = id.$in

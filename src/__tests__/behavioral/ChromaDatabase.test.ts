@@ -244,6 +244,64 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         assert.isLength(collections, 0, 'Collections were not deleted')
     }
 
+    @test()
+    protected static async doesTextSearchWith$promptKey() {
+        const created = await this.createSearchableDocuments()
+        const results = await this.findByPrompt('down')
+
+        assert.isEqualDeep(
+            results[0],
+            created[1],
+            'Searching based on $prompt did not return the expected match'
+        )
+    }
+
+    @test()
+    protected static async canFindUsingDifferent$promptKey() {
+        const created = await this.createSearchableDocuments()
+        const results = await this.findByPrompt('pepper')
+
+        assert.isEqualDeep(
+            results[0],
+            created[0],
+            'Searching based on $prompt did not return the expected match'
+        )
+    }
+
+    @test()
+    protected static async canFindUsingDifferentLimit() {
+        await this.createSearchableDocuments()
+        const results = await this.findByPrompt('pepper', 2)
+        assert.isLength(results, 2, 'Expected to find two results')
+    }
+
+    private static async findByPrompt(prompt: string, limit?: number) {
+        const results = await this.db.find(
+            this.collectionName,
+            {
+                $prompt: prompt,
+            },
+            {
+                limit: limit ?? 1,
+            }
+        )
+
+        assert.isLength(
+            results,
+            limit ?? 1,
+            'Expected to find one result from $prompt'
+        )
+        return results
+    }
+
+    private static async createSearchableDocuments() {
+        return await this.db.create(this.collectionName, [
+            { name: 'peter piper picked a pepper' },
+            { name: 'this is down' },
+            { cheesey: 'this is a burrito' },
+        ])
+    }
+
     private static async getOrCreateCollection(
         collectionName?: string
     ): Promise<Collection> {
