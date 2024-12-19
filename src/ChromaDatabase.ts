@@ -26,6 +26,7 @@ export default class ChromaDatabase implements Database {
     private _isConnected = false
     private embeddings: OllamaEmbeddingFunction
     private collections: Record<string, Collection> = {}
+    private static embeddingFields?: Record<string, string[]>
 
     public constructor(connectionString: string) {
         assertOptions({ connectionString }, ['connectionString'])
@@ -44,10 +45,29 @@ export default class ChromaDatabase implements Database {
         this.connectionString = connectionString.replace('chroma://', 'http://')
     }
 
+    public static setEmbeddingsFields(
+        collectionName: string,
+        fields: string[]
+    ) {
+        if (!this.embeddingFields) {
+            this.embeddingFields = {}
+        }
+        this.embeddingFields[collectionName] = fields
+    }
+
+    public static clearEmbeddingsFields() {
+        delete this.embeddingFields
+    }
+
     public async syncUniqueIndexes(
         _collectionName: string,
         _indexes: Index[]
-    ): Promise<void> {}
+    ): Promise<void> {
+        throw new SpruceError({
+            code: 'FEATURE_NOT_SUPPORTED',
+            operation: 'syncUniqueIndexes',
+        })
+    }
 
     public async syncIndexes(
         _collectionName: string,
@@ -137,13 +157,19 @@ export default class ChromaDatabase implements Database {
         return this.collections[collection]
     }
 
-    private buildPrompt(values: Record<string, any>) {
+    private buildPrompt(values: Record<string, any>, collectionName: string) {
+        const fields = ChromaDatabase.embeddingFields?.[collectionName]
+        if (fields?.length === 1) {
+            const field = fields[0]
+            return values[field]
+        }
         let prompt = ''
-        for (const key in values) {
+        const keys = Object.keys(values)
+        for (const key of keys) {
             const value = values[key]
-            if (typeof value === 'object') {
-                prompt += `${key}:\n\t${this.buildPrompt(value)}\n`
-            } else {
+            if (value && typeof value === 'object') {
+                prompt += `${key}:\n\t${this.buildPrompt(value, collectionName)}\n`
+            } else if (value) {
                 prompt += `${key}: ${value}\n`
             }
         }
@@ -155,7 +181,10 @@ export default class ChromaDatabase implements Database {
         values: Record<string, any>[]
     ): Promise<Record<string, any>[]> {
         const col = await this.getCollection(collection)
-        const { documents, ids, metadatas } = this.splitValues(values)
+        const { documents, ids, metadatas } = this.splitValues(
+            values,
+            collection
+        )
 
         await col.add({
             documents,
@@ -166,7 +195,7 @@ export default class ChromaDatabase implements Database {
         return this.find(collection, { id: { $in: ids } })
     }
 
-    private splitValues(values: Record<string, any>[]) {
+    private splitValues(values: Record<string, any>[], collectionName: string) {
         const ids = []
         const documents = []
         const metadatas: Metadatas = []
@@ -174,7 +203,7 @@ export default class ChromaDatabase implements Database {
         for (const v of values) {
             const { id = this.generateId(), ...values } = v
             ids.push(id)
-            documents.push(this.buildPrompt(values))
+            documents.push(this.buildPrompt(values, collectionName))
             const flattened = this.flattenValues(values)
             metadatas.push(flattened)
         }
@@ -282,7 +311,6 @@ export default class ChromaDatabase implements Database {
                 trimmedRecords.push(record)
             }
             records = trimmedRecords
-            debugger
         }
 
         return records
@@ -369,7 +397,7 @@ export default class ChromaDatabase implements Database {
                 storeName: collection,
             })
         }
-        const { documents, metadatas } = this.splitValues([updates])
+        const { documents, metadatas } = this.splitValues([updates], collection)
 
         await col.update({
             ids: [match.id],
@@ -401,7 +429,10 @@ export default class ChromaDatabase implements Database {
     ): Promise<Record<string, any>> {
         const col = await this.getCollection(collection)
         const match = await this.findOne(collection, query)
-        let { documents, ids, metadatas } = this.splitValues([updates])
+        let { documents, ids, metadatas } = this.splitValues(
+            [updates],
+            collection
+        )
 
         if (match?.id) {
             ids = [match.id]

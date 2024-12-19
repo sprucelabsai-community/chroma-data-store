@@ -19,6 +19,8 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     protected static async beforeEach() {
         await super.beforeEach()
 
+        ChromaDatabase.clearEmbeddingsFields()
+
         this.chroma = new ChromaClient({ path: 'http://localhost:8000' })
         this.embedding = new OllamaEmbeddingFunction({
             model: 'llama3.2',
@@ -29,11 +31,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
 
         this.db = db
         this.collectionName = generateId()
-
-        this.collection = await this.chroma.getOrCreateCollection({
-            name: this.collectionName,
-            embeddingFunction: this.embedding,
-        })
+        this.collection = await this.getOrCreateCollection()
     }
 
     protected static async afterEach(): Promise<void> {
@@ -134,6 +132,11 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
             () => this.db.createIndex('', []),
             'createIndex'
         )
+
+        await this.assertOperationThrowsNotSupported(
+            () => this.db.syncUniqueIndexes('', []),
+            'syncUniqueIndexes'
+        )
     }
 
     @test()
@@ -178,7 +181,109 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
             '!assertCanSyncIndexesWithoutPartialThenAgainWithProperlyUpdates',
             '!assertSyncingIndexesDoesNotAddAndRemove',
             '!assertNestedFieldIndexUpdates',
+            '!assertSyncingUniqueIndexesIsRaceProof',
+            '!assertUpsertWithUniqueIndex',
         ])
+    }
+
+    @test()
+    protected static async canSetSingleEmbeddingField() {
+        await this.setEmbedFieldsAndAssertEmbeddingsEqual(['name'], 'Hello', {
+            name: 'Hello',
+            test: true,
+        })
+    }
+
+    @test()
+    protected static async canSetDifferentSingleEmbeddingField() {
+        await this.setEmbedFieldsAndAssertEmbeddingsEqual(
+            ['firstName'],
+            'Cheese',
+            {
+                firstName: 'Cheese',
+                name: 'Hello',
+                test: false,
+            }
+        )
+    }
+
+    @test()
+    protected static async canSetMultipleFieldsOnEmbedding() {
+        await this.setEmbedFieldsAndAssertEmbeddingsEqual(
+            ['firstName', 'lastName'],
+            'firstName: tay\nlastName: ro',
+            {
+                firstName: 'tay',
+                lastName: 'ro',
+            }
+        )
+    }
+
+    @test()
+    protected static async embeddingFieldsHonorsCollection() {
+        this.setEmbeddingFields(['lastName'])
+        this.setEmbeddingFields(['name'], generateId())
+
+        await this.assertEmbeddingsEqual(
+            {
+                lastName: 'test',
+            },
+            'test'
+        )
+    }
+
+    @test()
+    protected static async dropDatabaseDeletesAllCollections() {
+        await this.getOrCreateCollection(generateId())
+        await this.getOrCreateCollection(generateId())
+        await this.getOrCreateCollection(generateId())
+        await this.db.dropDatabase()
+
+        const client = new ChromaClient({ path: 'http://localhost:8000' })
+        const collections = await client.listCollections()
+        assert.isLength(collections, 0, 'Collections were not deleted')
+    }
+
+    private static async getOrCreateCollection(
+        collectionName?: string
+    ): Promise<Collection> {
+        return await this.chroma.getOrCreateCollection({
+            name: collectionName ?? this.collectionName,
+            embeddingFunction: this.embedding,
+        })
+    }
+
+    private static async setEmbedFieldsAndAssertEmbeddingsEqual(
+        embeddingFields: string[],
+        embeddingPrompt: string,
+        values: Record<string, any>
+    ) {
+        this.setEmbeddingFields(embeddingFields)
+        await this.assertEmbeddingsEqual(values, embeddingPrompt)
+    }
+
+    private static async assertEmbeddingsEqual(
+        values: Record<string, any>,
+        embeddingPrompt: string
+    ) {
+        const record = await this.createOne(values)
+        const match = await this.getById(record.id)
+        const embeddings = await this.generateEmbeddings([embeddingPrompt])
+        assert.isEqualDeep(
+            match.embeddings?.[0],
+            embeddings[0],
+            `The embeddings for ${JSON.stringify(record)} did not match based on the prompt 'Hello'.`
+        )
+    }
+
+    private static setEmbeddingFields(
+        fields: string[],
+        collectionName?: string
+    ) {
+        ChromaDatabase.setEmbeddingsFields(
+            collectionName ?? this.collectionName,
+            fields
+        )
     }
 
     private static async assertOperationThrowsNotSupported(
