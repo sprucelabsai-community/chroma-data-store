@@ -1,5 +1,5 @@
 {
-  "name": "chroma-data-store",
+  "name": "@sprucelabs/chroma-data-store",
   "version": "0.0.1",
   "scripts": {
     "build.ci": "yarn run build.tsc && yarn run build.resolve-paths && yarn run lint",
