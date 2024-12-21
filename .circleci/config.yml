@@ -6,6 +6,7 @@ jobs:
     docker:
       - image: cimg/node:lts
       - image: chromadb/chroma:latest
+      - image: yourorg/llama3.2:latest
     working_directory: /mnt/ramdisk
     steps:
       - add_ssh_keys:
