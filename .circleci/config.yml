@@ -5,6 +5,7 @@ jobs:
   test:
     docker:
       - image: cimg/node:lts
+      - image: chromadb/chroma:latest
     working_directory: /mnt/ramdisk
     steps:
       - add_ssh_keys:
