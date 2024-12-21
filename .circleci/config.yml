@@ -1,8 +1,6 @@
 version: 2.1
 orbs:
   spruce: sprucelabsai/orb@1
-no_output_timeout: 10m
-timeout: 10
 jobs:
   test:
     docker:
@@ -17,7 +15,8 @@ jobs:
       - checkout
       - spruce/check_and_skip_if_npm_publish
       - spruce/install_rsync
-      - spruce/install_deps_build_ci_test
+      - spruce/install_deps_build_ci_test:
+          timeout: "5m"
       - spruce/exit_if_not_auto_upgrade
       - spruce/merge_auto_upgrade
   npm_publish:
