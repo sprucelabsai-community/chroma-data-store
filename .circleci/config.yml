@@ -1,7 +1,8 @@
 version: 2.1
 orbs:
   spruce: sprucelabsai/orb@1
-no_output_timeout: 30m
+no_output_timeout: 10m
+timeout: 10
 jobs:
   test:
     docker:
@@ -50,7 +51,6 @@ jobs:
       - spruce/check_for_newline_only_diff
       - spruce/create_pr
 workflows:
-  version: 2.1
   do_build:
     jobs:
       - test:
@@ -63,7 +63,7 @@ workflows:
             branches:
               only:
                 - master
-  upgrade:
+  upgrade_workflow:
     jobs:
       - upgrade:
           context: public_package_publish
