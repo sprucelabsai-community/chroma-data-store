@@ -24,12 +24,14 @@ import { Collection, WhereWithPrompt } from './chroma.types'
 import SpruceError from './errors/SpruceError'
 
 export default class ChromaDatabase implements Database {
+    public static Class?: new (connectionString: string) => Database
+    private static embeddingFields?: Record<string, string[]>
+
     private connectionString: string
     private client!: ChromaClient
     private _isConnected = false
     private embeddings: OllamaEmbeddingFunction
     private collections: Record<string, Collection> = {}
-    private static embeddingFields?: Record<string, string[]>
 
     public constructor(connectionString: string) {
         assertOptions({ connectionString }, ['connectionString'])
@@ -48,6 +50,10 @@ export default class ChromaDatabase implements Database {
         this.connectionString = connectionString.replace('chroma://', 'http://')
     }
 
+    public static Database(connectionString: string) {
+        return new (this.Class ?? this)(connectionString)
+    }
+
     public static setEmbeddingsFields(
         collectionName: string,
         fields: string[]
@@ -60,6 +66,10 @@ export default class ChromaDatabase implements Database {
 
     public static clearEmbeddingsFields() {
         delete this.embeddingFields
+    }
+
+    public static getEmbeddingsFields() {
+        return this.embeddingFields
     }
 
     public async syncUniqueIndexes(
