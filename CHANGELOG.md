@@ -1,3 +1,10 @@
+# [0.1.0](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.0.5...v0.1.0) (2024-12-27)
+
+
+### Features
+
+* mock database and chromaDbAssert util ([b9d4632](https://github.com/sprucelabsai-community/chroma-data-store/commit/b9d4632))
+
 ## [0.0.5](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.0.4...v0.0.5) (2024-12-27)
 
 ## [0.0.4](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.0.3...v0.0.4) (2024-12-24)
