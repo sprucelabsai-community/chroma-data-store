@@ -82,12 +82,12 @@
     }
   },
   "dependencies": {
-    "@sprucelabs/data-stores": "^28.5.1",
+    "@sprucelabs/data-stores": "^28.5.2",
     "@sprucelabs/error": "^6.0.556",
     "@sprucelabs/schema": "^31.0.3",
     "@sprucelabs/spruce-core-schemas": "^40.1.586",
     "@sprucelabs/spruce-skill-utils": "^31.1.9",
-    "chromadb": "^1.9.4",
+    "chromadb": "^1.10.0",
     "chromadb-default-embed": "^2.13.2"
   }
 }
