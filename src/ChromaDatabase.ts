@@ -258,9 +258,7 @@ export default class ChromaDatabase implements Database {
 
     public async dropDatabase(): Promise<void> {
         const collections = await this.client.listCollections()
-        await Promise.all(
-            collections.map((col) => this.dropCollection(col.name))
-        )
+        await Promise.all(collections.map((col) => this.dropCollection(col)))
     }
 
     public async findOne(
