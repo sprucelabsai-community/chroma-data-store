@@ -6,4 +6,4 @@
 
 # Connecting to Chroma
 
-Use the connection string: `chromadb://localhost:5432`
+Use the connection string: `chromadb://localhost:8000`
