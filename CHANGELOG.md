@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.1.24...v0.2.0) (2025-01-22)
+
+
+### Features
+
+* can assert a database is actually connected ([e2640dc](https://github.com/sprucelabsai-community/chroma-data-store/commit/e2640dc))
+
 ## [0.1.24](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.1.23...v0.1.24) (2025-01-22)
 
 ## [0.1.23](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.1.22...v0.1.23) (2025-01-16)
