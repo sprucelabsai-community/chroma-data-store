@@ -15,4 +15,15 @@ export default class MockChromaDatabase extends NeDbDatabase {
             'The connection string you passed to your ChromaDb does not equal what I expected!'
         )
     }
+
+    public async connect(): Promise<void> {
+        await super.connect()
+    }
+
+    public assertIsConnected() {
+        assert.isTrue(
+            this.isConnected(),
+            'Database is not connected! Try calling db.connect()'
+        )
+    }
 }

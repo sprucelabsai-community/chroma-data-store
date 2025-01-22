@@ -80,6 +80,13 @@ export default class TestingWithChromaDatabaseTest extends AbstractSpruceTest {
         ])
     }
 
+    @test()
+    protected static async canAssertWasConnected() {
+        assert.doesThrow(() => this.db.assertIsConnected())
+        await this.db.connect()
+        this.db.assertIsConnected()
+    }
+
     private static setEmbeddingFieldsAndAssertFieldsEqual(
         collectionName: string,
         fields: string[]
