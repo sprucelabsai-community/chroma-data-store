@@ -507,6 +507,9 @@ export default class ChromaDatabase implements Database {
         query: Record<string, any>
     ): Promise<number> {
         const matches = await this.find(collection, query)
+        if (matches.length === 0) {
+            return 0
+        }
         const col = await this.getCollection(collection)
         await col.delete({
             ids: matches.map((m) => m.id),

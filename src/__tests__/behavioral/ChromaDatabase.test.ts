@@ -315,6 +315,19 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         assert.isLength(results, 5, 'Expected to find 5 results')
     }
 
+    @test()
+    protected static async deletingDocumentsWhereThereAreNoMatchesDoesNotThrow() {
+        await this.createSearchableDocuments('toasty')
+        const query = { code: 'toasty' }
+        await this.delete(query)
+        const totalDeleted = await this.delete(query)
+        assert.isEqual(totalDeleted, 0, 'Expected to delete 0 documents')
+    }
+
+    private static async delete(query: Record<string, any>) {
+        return await this.db.delete(this.collectionName, query)
+    }
+
     private static async findByPrompt(
         prompt: string,
         limit?: number,
