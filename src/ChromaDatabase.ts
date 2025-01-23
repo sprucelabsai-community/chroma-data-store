@@ -37,7 +37,7 @@ export default class ChromaDatabase implements Database {
         assertOptions({ connectionString }, ['connectionString'])
 
         this.embeddings = new OllamaEmbeddingFunction({
-            model: 'llama3.2',
+            model: 'llama3.3',
             url: 'http://localhost:11434/api/embeddings',
         })
 
