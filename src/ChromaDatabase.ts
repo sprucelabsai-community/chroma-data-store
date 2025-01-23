@@ -285,14 +285,18 @@ export default class ChromaDatabase implements Database {
         let { ids, where, skipIds } = this.buildQuery(query)
         let matches: Pick<GetResponse, 'ids' | 'metadatas'> | undefined
 
-        const { limit, includeFields } = options ?? {}
+        let { limit, includeFields } = options ?? {}
         const col = await this.getCollection(collection)
+
+        if (!limit && where?.$prompt) {
+            limit = 10
+        }
 
         if (where?.$prompt) {
             const { $prompt, ...rest } = where
             const queryResults = await col.query({
                 queryTexts: [$prompt],
-                nResults: 1,
+                nResults: limit,
                 where: Object.keys(rest).length > 0 ? rest : undefined,
             })
 

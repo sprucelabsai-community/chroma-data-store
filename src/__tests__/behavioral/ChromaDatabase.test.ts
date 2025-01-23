@@ -299,6 +299,22 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         )
     }
 
+    @test()
+    protected static async searchingByPromptReturns10ByDefault() {
+        await this.createSearchableDocuments('stardust')
+        const results = await this.db.find(this.collectionName, {
+            $prompt: 'stardust',
+        })
+        assert.isLength(results, 10, 'Expected to find 10 results')
+    }
+
+    @test()
+    protected static async searchingByPromptHonorsLimit() {
+        await this.createSearchableDocuments('stardust')
+        const results = await this.findByPrompt('stardust', 5)
+        assert.isLength(results, 5, 'Expected to find 5 results')
+    }
+
     private static async findByPrompt(
         prompt: string,
         limit?: number,
@@ -323,13 +339,27 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         return results
     }
 
-    private static async createSearchableDocuments() {
+    private static async createSearchableDocuments(code?: string) {
         return await this.db.create(this.collectionName, [
-            { name: 'peter piper picked a pepper' },
-            { name: 'this is down' },
-            { cheesey: 'this is a burrito' },
-            { stinky: 'cheese', hello: 'world' },
-            { stinky: 'cheese', world: 'hello' },
+            { name: 'peter piper picked a pepper', code },
+            { name: 'this is down', code },
+            { cheesey: 'this is a burrito', code },
+            { stinky: 'cheese', hello: 'world', code },
+            { stinky: 'cheese', world: 'hello', code },
+            { name: 'limbo', code },
+            { whatever: 'you say', code },
+            { name: "arby's", code },
+            { name: 'mcdonalds', code },
+            { name: 'wendys', code },
+            { name: 'taco bell', code },
+            { name: 'burger king', code },
+            { name: 'kfc', code },
+            { name: 'popeyes', code },
+            { name: 'chick-fil-a', code },
+            { name: 'subway', code },
+            { name: 'dominos', code },
+            { name: 'pizza hut', code },
+            { name: 'little caesars', code },
         ])
     }
 
