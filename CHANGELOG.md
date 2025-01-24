@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.2.3...v0.3.0) (2025-01-24)
+
+
+### Features
+
+* can override th ([9cde317](https://github.com/sprucelabsai-community/chroma-data-store/commit/9cde317))
+
 ## [0.2.3](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.2.2...v0.2.3) (2025-01-24)
 
 ## [0.2.2](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.2.1...v0.2.2) (2025-01-23)
