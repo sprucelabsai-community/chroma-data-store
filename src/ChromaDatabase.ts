@@ -25,6 +25,8 @@ import SpruceError from './errors/SpruceError'
 
 export default class ChromaDatabase implements Database {
     public static Class?: new (connectionString: string) => Database
+    public static EmbeddingFunction = OllamaEmbeddingFunction
+
     private static embeddingFields?: Record<string, string[]>
 
     private connectionString: string
@@ -36,8 +38,8 @@ export default class ChromaDatabase implements Database {
     public constructor(connectionString: string) {
         assertOptions({ connectionString }, ['connectionString'])
 
-        this.embeddings = new OllamaEmbeddingFunction({
-            model: 'llama3.2',
+        this.embeddings = new ChromaDatabase.EmbeddingFunction({
+            model: process.env.CHROMA_EMBEDDING_MODEL ?? 'llama3.2',
             url: 'http://localhost:11434/api/embeddings',
         })
 

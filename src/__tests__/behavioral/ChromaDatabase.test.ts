@@ -324,6 +324,17 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         assert.isEqual(totalDeleted, 0, 'Expected to delete 0 documents')
     }
 
+    @test()
+    protected static async canOverrideTheModelUsingEnv() {
+        process.env.CHROMA_EMBEDDING_MODEL = generateId()
+        ChromaDatabase.EmbeddingFunction = SpyOllamaEmbeddingFunction
+        await chromaConnect()
+        assert.isEqual(
+            SpyOllamaEmbeddingFunction.instance?.constructorOptions?.model,
+            process.env.CHROMA_EMBEDDING_MODEL
+        )
+    }
+
     private static async delete(query: Record<string, any>) {
         return await this.db.delete(this.collectionName, query)
     }
@@ -479,5 +490,17 @@ const chromaConnect: TestConnect = async (connectionString?: string) => {
         scheme: 'chroma://',
         connectionStringWithRandomBadDatabaseName: `chroma://bad-database/${badDatabaseName}`,
         badDatabaseName,
+    }
+}
+
+class SpyOllamaEmbeddingFunction extends OllamaEmbeddingFunction {
+    public static instance?: SpyOllamaEmbeddingFunction
+
+    public constructorOptions?: { url: string; model: string }
+
+    public constructor({ url, model }: { url: string; model: string }) {
+        super({ url, model })
+        this.constructorOptions = { url, model }
+        SpyOllamaEmbeddingFunction.instance = this
     }
 }
