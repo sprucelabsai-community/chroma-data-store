@@ -13,7 +13,7 @@
     "sprucebot",
     "sprucelabs"
   ],
-  "version": "0.2.2",
+  "version": "0.2.3",
   "scripts": {
     "build.ci": "yarn run build.tsc && yarn run build.resolve-paths && yarn run lint",
     "build.copy-files": "mkdir -p build && rsync -avzq --exclude='*.ts' ./src/ ./build/",
@@ -40,7 +40,7 @@
     "watch.rebuild": "yarn run clean.all && yarn install && yarn run watch.build.dev",
     "watch.tsc": "tsc -w",
     "start.chroma.docker": "./support/start_chroma_docker.sh",
-		"generate.embeddings": "./support/generate_embeddings.sh"
+    "generate.embeddings": "./support/generate_embeddings.sh"
   },
   "devDependencies": {
     "@sprucelabs/esm-postbuild": "^6.0.540",
