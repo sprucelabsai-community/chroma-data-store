@@ -1,3 +1,5 @@
+#!/bin/bash
+
 docker pull chromadb/chroma
 
 # Check if container "chroma" exists (stopped or running)

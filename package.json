@@ -39,7 +39,8 @@
     "watch.build.dev": "tsc-watch --sourceMap --onCompilationComplete 'yarn run post.watch.build'",
     "watch.rebuild": "yarn run clean.all && yarn install && yarn run watch.build.dev",
     "watch.tsc": "tsc -w",
-    "start.chroma.docker": "./support/start_chroma_docker.sh"
+    "start.chroma.docker": "./support/start_chroma_docker.sh",
+		"generate.embeddings": "./support/generate_embeddings.sh"
   },
   "devDependencies": {
     "@sprucelabs/esm-postbuild": "^6.0.540",
