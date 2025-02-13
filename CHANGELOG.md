@@ -1,3 +1,5 @@
+## [0.3.22](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.3.21...v0.3.22) (2025-02-13)
+
 ## [0.3.21](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.3.20...v0.3.21) (2025-02-13)
 
 ## [0.3.20](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.3.19...v0.3.20) (2025-02-12)
