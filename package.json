@@ -86,7 +86,7 @@
     "@sprucelabs/data-stores": "^28.5.54",
     "@sprucelabs/error": "^6.0.577",
     "@sprucelabs/schema": "^31.0.42",
-    "@sprucelabs/spruce-core-schemas": "^40.1.631",
+    "@sprucelabs/spruce-core-schemas": "^40.1.632",
     "@sprucelabs/spruce-skill-utils": "^31.2.44",
     "chromadb": "^1.10.4",
     "chromadb-default-embed": "^2.13.2"
