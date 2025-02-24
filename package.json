@@ -43,12 +43,12 @@
     "generate.embeddings": "./support/generate_embeddings.sh"
   },
   "devDependencies": {
-    "@sprucelabs/esm-postbuild": "^6.0.549",
-    "@sprucelabs/jest-json-reporter": "^8.0.581",
-    "@sprucelabs/resolve-path-aliases": "^2.0.533",
+    "@sprucelabs/esm-postbuild": "^6.0.550",
+    "@sprucelabs/jest-json-reporter": "^8.0.582",
+    "@sprucelabs/resolve-path-aliases": "^2.0.534",
     "@sprucelabs/semantic-release": "^5.0.2",
     "@sprucelabs/test": "^9.0.73",
-    "@sprucelabs/test-utils": "^5.5.11",
+    "@sprucelabs/test-utils": "^5.5.13",
     "@types/node": "^22.13.5",
     "chokidar-cli": "^3.0.0",
     "eslint": "^9.21.0",
@@ -83,11 +83,11 @@
     }
   },
   "dependencies": {
-    "@sprucelabs/data-stores": "^28.5.64",
-    "@sprucelabs/error": "^6.0.580",
-    "@sprucelabs/schema": "^31.0.52",
-    "@sprucelabs/spruce-core-schemas": "^40.1.641",
-    "@sprucelabs/spruce-skill-utils": "^31.2.55",
+    "@sprucelabs/data-stores": "^28.5.67",
+    "@sprucelabs/error": "^6.0.581",
+    "@sprucelabs/schema": "^31.0.54",
+    "@sprucelabs/spruce-core-schemas": "^40.1.644",
+    "@sprucelabs/spruce-skill-utils": "^31.2.58",
     "chromadb": "^1.10.4",
     "chromadb-default-embed": "^2.13.2"
   }
