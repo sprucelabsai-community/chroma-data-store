@@ -28,6 +28,8 @@ Llama 3.2 is the newest version of Llama (as of this writing) that supports embe
 
 We have seen significantly better search performance when using `nomic-embed-text` to generate embeddings.
 
+Run `ollama pull nomic-embed-text`
+
 
 ## Connecting to Chroma
 
