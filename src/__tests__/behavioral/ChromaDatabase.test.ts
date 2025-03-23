@@ -4,28 +4,27 @@ import AbstractSpruceTest, {
     assert,
     errorAssert,
     generateId,
+    suite,
 } from '@sprucelabs/test-utils'
 import { ChromaClient, IncludeEnum, OllamaEmbeddingFunction } from 'chromadb'
 import { Collection } from '../../chroma.types'
 import ChromaDatabase from '../../ChromaDatabase'
 
+@suite()
 export default class ChromaDatabaseTest extends AbstractSpruceTest {
-    private static embedding: OllamaEmbeddingFunction
-    private static db: Database
-    private static collectionName: string
-    private static chroma: ChromaClient
-    private static collection: Collection
+    private embedding = new OllamaEmbeddingFunction({
+        model: 'llama3.2',
+        url: 'http://localhost:11434/api/embeddings',
+    })
+    private db!: Database
+    private collectionName!: string
+    private chroma = new ChromaClient({ path: 'http://localhost:8000' })
+    private collection!: Collection
 
-    protected static async beforeEach() {
+    protected async beforeEach() {
         await super.beforeEach()
 
         ChromaDatabase.clearEmbeddingsFields()
-
-        this.chroma = new ChromaClient({ path: 'http://localhost:8000' })
-        this.embedding = new OllamaEmbeddingFunction({
-            model: 'llama3.2',
-            url: 'http://localhost:11434/api/embeddings',
-        })
 
         const { db } = await chromaConnect()
 
@@ -34,7 +33,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         this.collection = await this.getOrCreateCollection()
     }
 
-    protected static async afterEach(): Promise<void> {
+    protected async afterEach(): Promise<void> {
         await super.afterEach()
         try {
             await this.db.dropCollection(this.collectionName)
@@ -42,7 +41,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async throwsWithMissing() {
+    protected async throwsWithMissing() {
         //@ts-ignore
         const err = assert.doesThrow(() => new ChromaDatabase())
         errorAssert.assertError(err, 'MISSING_PARAMETERS', {
@@ -51,21 +50,21 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async defaultsToOllamaEmbedding() {
+    protected async defaultsToOllamaEmbedding() {
         await this.createOneAndAssertExpectedEmbeddings('name: Hello', {
             name: 'Hello',
         })
     }
 
     @test()
-    protected static async embedsTheWholeDocumentByDefault() {
+    protected async embedsTheWholeDocumentByDefault() {
         await this.createOneAndAssertExpectedEmbeddings('test: true', {
             test: true,
         })
     }
 
     @test()
-    protected static async canGenerateEmbedsForNestedValues() {
+    protected async canGenerateEmbedsForNestedValues() {
         await this.createOneAndAssertExpectedEmbeddings(
             `nested:\n\ttest: true`,
             {
@@ -75,7 +74,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canDoMultipleKeyValuePairsForEmbeddings() {
+    protected async canDoMultipleKeyValuePairsForEmbeddings() {
         await this.createOneAndAssertExpectedEmbeddings(
             `name: Hello\ntest: true`,
             {
@@ -86,7 +85,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canDoMultipleNestedKeyValuePairsForEmbeddings() {
+    protected async canDoMultipleNestedKeyValuePairsForEmbeddings() {
         await this.createOneAndAssertExpectedEmbeddings(
             `nested:\n\ttest: true\nname: Hello`,
             {
@@ -97,7 +96,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async throwsExpectedErrorForUnsupportedFeatures() {
+    protected async throwsExpectedErrorForUnsupportedFeatures() {
         await this.assertOperationThrowsNotSupported(
             () => this.db.syncIndexes(generateId(), []),
             'syncIndexes'
@@ -140,7 +139,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async runsSuiteOfDatabaseTests() {
+    protected async runsSuiteOfDatabaseTests() {
         await databaseAssert.runSuite(chromaConnect, [
             '!assertThrowsWithBadDatabaseName',
             '!assertCanSortDesc',
@@ -187,7 +186,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canSetSingleEmbeddingField() {
+    protected async canSetSingleEmbeddingField() {
         await this.setEmbedFieldsAndAssertEmbeddingsEqual(['name'], 'Hello', {
             name: 'Hello',
             test: true,
@@ -195,7 +194,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canSetDifferentSingleEmbeddingField() {
+    protected async canSetDifferentSingleEmbeddingField() {
         await this.setEmbedFieldsAndAssertEmbeddingsEqual(
             ['firstName'],
             'Cheese',
@@ -208,7 +207,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canSetMultipleFieldsOnEmbedding() {
+    protected async canSetMultipleFieldsOnEmbedding() {
         await this.setEmbedFieldsAndAssertEmbeddingsEqual(
             ['firstName', 'lastName'],
             'firstName: tay\nlastName: ro',
@@ -220,7 +219,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async embeddingFieldsHonorsCollection() {
+    protected async embeddingFieldsHonorsCollection() {
         this.setEmbeddingFields(['lastName'])
         this.setEmbeddingFields(['name'], generateId())
 
@@ -233,7 +232,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async dropDatabaseDeletesAllCollections() {
+    protected async dropDatabaseDeletesAllCollections() {
         await this.getOrCreateCollection(generateId())
         await this.getOrCreateCollection(generateId())
         await this.getOrCreateCollection(generateId())
@@ -245,7 +244,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async doesTextSearchWith$promptKey() {
+    protected async doesTextSearchWith$promptKey() {
         const created = await this.createSearchableDocuments()
         const results = await this.findByPrompt('down')
 
@@ -257,7 +256,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canFindUsingDifferent$promptKey() {
+    protected async canFindUsingDifferent$promptKey() {
         const created = await this.createSearchableDocuments()
         const results = await this.findByPrompt('pepper')
 
@@ -269,14 +268,14 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canFindUsingDifferentLimit() {
+    protected async canFindUsingDifferentLimit() {
         await this.createSearchableDocuments()
         const results = await this.findByPrompt('pepper', 2)
         assert.isLength(results, 2, 'Expected to find two results')
     }
 
     @test()
-    protected static async canSearchByPromptAndDocumentFields() {
+    protected async canSearchByPromptAndDocumentFields() {
         const created = await this.createSearchableDocuments()
         const results = await this.findByPrompt('cheese', 1, { hello: 'world' })
         const expected = created[3]
@@ -288,7 +287,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canSearchSamePromptAndDifferentDocumentFields() {
+    protected async canSearchSamePromptAndDifferentDocumentFields() {
         const created = await this.createSearchableDocuments()
         const results = await this.findByPrompt('cheese', 1, { world: 'hello' })
         const expected = created[4]
@@ -300,7 +299,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async searchingByPromptReturns10ByDefault() {
+    protected async searchingByPromptReturns10ByDefault() {
         await this.createSearchableDocuments('stardust')
         const results = await this.db.find(this.collectionName, {
             $prompt: 'stardust',
@@ -309,14 +308,14 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async searchingByPromptHonorsLimit() {
+    protected async searchingByPromptHonorsLimit() {
         await this.createSearchableDocuments('stardust')
         const results = await this.findByPrompt('stardust', 5)
         assert.isLength(results, 5, 'Expected to find 5 results')
     }
 
     @test()
-    protected static async deletingDocumentsWhereThereAreNoMatchesDoesNotThrow() {
+    protected async deletingDocumentsWhereThereAreNoMatchesDoesNotThrow() {
         await this.createSearchableDocuments('toasty')
         const query = { code: 'toasty' }
         await this.delete(query)
@@ -325,7 +324,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canOverrideTheModelUsingEnv() {
+    protected async canOverrideTheModelUsingEnv() {
         process.env.CHROMA_EMBEDDING_MODEL = generateId()
         ChromaDatabase.EmbeddingFunction = SpyOllamaEmbeddingFunction
         await chromaConnect()
@@ -335,11 +334,11 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         )
     }
 
-    private static async delete(query: Record<string, any>) {
+    private async delete(query: Record<string, any>) {
         return await this.db.delete(this.collectionName, query)
     }
 
-    private static async findByPrompt(
+    private async findByPrompt(
         prompt: string,
         limit?: number,
         query?: Record<string, any>
@@ -363,7 +362,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         return results
     }
 
-    private static async createSearchableDocuments(code?: string) {
+    private async createSearchableDocuments(code?: string) {
         return await this.db.create(this.collectionName, [
             { name: 'peter piper picked a pepper', code },
             { name: 'this is down', code },
@@ -387,7 +386,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         ])
     }
 
-    private static async getOrCreateCollection(
+    private async getOrCreateCollection(
         collectionName?: string
     ): Promise<Collection> {
         return await this.chroma.getOrCreateCollection({
@@ -396,7 +395,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         })
     }
 
-    private static async setEmbedFieldsAndAssertEmbeddingsEqual(
+    private async setEmbedFieldsAndAssertEmbeddingsEqual(
         embeddingFields: string[],
         embeddingPrompt: string,
         values: Record<string, any>
@@ -405,7 +404,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         await this.assertEmbeddingsEqual(values, embeddingPrompt)
     }
 
-    private static async assertEmbeddingsEqual(
+    private async assertEmbeddingsEqual(
         values: Record<string, any>,
         embeddingPrompt: string
     ) {
@@ -419,17 +418,14 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         )
     }
 
-    private static setEmbeddingFields(
-        fields: string[],
-        collectionName?: string
-    ) {
+    private setEmbeddingFields(fields: string[], collectionName?: string) {
         ChromaDatabase.setEmbeddingsFields(
             collectionName ?? this.collectionName,
             fields
         )
     }
 
-    private static async assertOperationThrowsNotSupported(
+    private async assertOperationThrowsNotSupported(
         cb: () => Promise<any>,
         operation: string
     ) {
@@ -443,7 +439,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         })
     }
 
-    private static async createOneAndAssertExpectedEmbeddings(
+    private async createOneAndAssertExpectedEmbeddings(
         prompt: string,
         values: Record<string, any>
     ) {
@@ -463,18 +459,18 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         )
     }
 
-    private static async getById(id: string) {
+    private async getById(id: string) {
         return await this.collection.get({
             ids: [id],
             include: ['embeddings' as IncludeEnum, 'documents' as IncludeEnum],
         })
     }
 
-    private static async generateEmbeddings(prompts: string[]) {
+    private async generateEmbeddings(prompts: string[]) {
         return await this.embedding.generate(prompts)
     }
 
-    private static async createOne(values: Record<string, any>) {
+    private async createOne(values: Record<string, any>) {
         return await this.db.createOne(this.collectionName, values)
     }
 }

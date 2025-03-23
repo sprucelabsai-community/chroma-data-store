@@ -1,5 +1,6 @@
 import AbstractSpruceTest, {
     test,
+    suite,
     assert,
     generateId,
     errorAssert,
@@ -8,11 +9,12 @@ import ChromaDatabase from '../../ChromaDatabase'
 import chromaDbAssert from '../../chromaDbAssert.utility'
 import MockChromaDatabase from '../../MockChromaDatabase'
 
+@suite()
 export default class TestingWithChromaDatabaseTest extends AbstractSpruceTest {
-    private static db: MockChromaDatabase
-    private static connectionString: string
+    private db!: MockChromaDatabase
+    private connectionString!: string
 
-    protected static async beforeEach(): Promise<void> {
+    protected async beforeEach(): Promise<void> {
         await super.beforeEach()
 
         this.connectionString = 'chroma://' + generateId()
@@ -24,24 +26,24 @@ export default class TestingWithChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canCreateFakeChromaDatabase() {
+    protected async canCreateFakeChromaDatabase() {
         assert.isInstanceOf(this.db, MockChromaDatabase)
     }
 
     @test()
-    protected static async assertConnectionStringThrowsWhenNotEqual() {
+    protected async assertConnectionStringThrowsWhenNotEqual() {
         assert.doesThrow(() =>
             this.db.assertConnectionStringEquals('chroma://' + generateId())
         )
     }
 
     @test()
-    protected static async assertConnectionStringEquals() {
+    protected async assertConnectionStringEquals() {
         this.db.assertConnectionStringEquals(this.connectionString)
     }
 
     @test()
-    protected static async canAssertEmbeddingFieldsThrowsWithMissing() {
+    protected async canAssertEmbeddingFieldsThrowsWithMissing() {
         const err = assert.doesThrow(() =>
             //@ts-ignore
             this.assertEmbeddingFieldsEqual()
@@ -52,7 +54,7 @@ export default class TestingWithChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canAssertEmbeddingFields() {
+    protected async canAssertEmbeddingFields() {
         this.setEmbeddingFieldsAndAssertFieldsEqual(generateId(), [
             'id',
             'name',
@@ -64,13 +66,13 @@ export default class TestingWithChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async assertThrowsIfCollectionNameDoesNotMatch() {
+    protected async assertThrowsIfCollectionNameDoesNotMatch() {
         this.setEmbeddingFields(generateId(), ['id', 'name'])
         this.assertEmbeddingFieldsEqualThrows(generateId(), ['id', 'name'])
     }
 
     @test()
-    protected static async throwsWhenFieldsDoNotMatch() {
+    protected async throwsWhenFieldsDoNotMatch() {
         const collectionName = generateId()
         this.setEmbeddingFields(collectionName, ['id', 'name'])
         this.assertEmbeddingFieldsEqualThrows(collectionName, [
@@ -81,13 +83,13 @@ export default class TestingWithChromaDatabaseTest extends AbstractSpruceTest {
     }
 
     @test()
-    protected static async canAssertWasConnected() {
+    protected async canAssertWasConnected() {
         assert.doesThrow(() => this.db.assertIsConnected())
         await this.db.connect()
         this.db.assertIsConnected()
     }
 
-    private static setEmbeddingFieldsAndAssertFieldsEqual(
+    private setEmbeddingFieldsAndAssertFieldsEqual(
         collectionName: string,
         fields: string[]
     ) {
@@ -95,7 +97,7 @@ export default class TestingWithChromaDatabaseTest extends AbstractSpruceTest {
         this.assertEmbeddingFieldsEqual(collectionName, fields)
     }
 
-    private static assertEmbeddingFieldsEqualThrows(
+    private assertEmbeddingFieldsEqualThrows(
         collection: string,
         fields: string[]
     ) {
@@ -104,17 +106,11 @@ export default class TestingWithChromaDatabaseTest extends AbstractSpruceTest {
         )
     }
 
-    private static assertEmbeddingFieldsEqual(
-        collection: string,
-        fields: string[]
-    ) {
+    private assertEmbeddingFieldsEqual(collection: string, fields: string[]) {
         chromaDbAssert.embeddingFieldsForCollectionEqual(collection, fields)
     }
 
-    private static setEmbeddingFields(
-        collectionName: string,
-        fields: string[]
-    ) {
+    private setEmbeddingFields(collectionName: string, fields: string[]) {
         ChromaDatabase.setEmbeddingsFields(collectionName, fields)
     }
 }
