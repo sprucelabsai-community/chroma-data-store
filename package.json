@@ -83,6 +83,7 @@
     }
   },
   "dependencies": {
+    "@chroma-core/ollama": "^0.1.7",
     "@sprucelabs/data-stores": "^28.6.15",
     "@sprucelabs/error": "^6.0.607",
     "@sprucelabs/schema": "^31.1.13",

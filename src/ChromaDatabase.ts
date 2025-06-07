@@ -10,17 +10,15 @@ import {
 } from '@sprucelabs/data-stores'
 import { assertOptions, flattenValues, expandValues } from '@sprucelabs/schema'
 import { NULL_PLACEHOLDER } from '@sprucelabs/test-utils'
+import { OllamaEmbeddingFunction } from '@chroma-core/ollama'
 import {
     ChromaClient,
-    OllamaEmbeddingFunction,
-    Metadatas,
     IncludeEnum,
     Where,
-    GetResponse,
-    IDs,
     Metadata,
+    Collection,
 } from 'chromadb'
-import { Collection, WhereWithPrompt } from './chroma.types'
+import { GetResponse, WhereWithPrompt } from './chroma.types'
 import SpruceError from './errors/SpruceError'
 
 export default class ChromaDatabase implements Database {
@@ -40,7 +38,7 @@ export default class ChromaDatabase implements Database {
 
         this.embeddings = new ChromaDatabase.EmbeddingFunction({
             model: process.env.CHROMA_EMBEDDING_MODEL ?? 'llama3.2',
-            url: 'http://localhost:11434/api/embeddings',
+            url: 'http://localhost:11434',
         })
 
         if (!connectionString.startsWith('chroma://')) {
@@ -213,7 +211,7 @@ export default class ChromaDatabase implements Database {
     private splitValues(values: Record<string, any>[], collectionName: string) {
         const ids = []
         const documents = []
-        const metadatas: Metadatas = []
+        const metadatas: Metadata[] = []
 
         for (const v of values) {
             const { id = this.generateId(), ...values } = v
@@ -260,7 +258,9 @@ export default class ChromaDatabase implements Database {
 
     public async dropDatabase(): Promise<void> {
         const collections = await this.client.listCollections()
-        await Promise.all(collections.map((col) => this.dropCollection(col)))
+        await Promise.all(
+            collections.map((col) => this.dropCollection(col.name))
+        )
     }
 
     public async findOne(
@@ -299,18 +299,20 @@ export default class ChromaDatabase implements Database {
             const queryResults = await col.query({
                 queryTexts: [$prompt],
                 nResults: limit,
-                where: Object.keys(rest).length > 0 ? rest : undefined,
+                where: (Object.keys(rest).length > 0
+                    ? rest
+                    : undefined) as Where,
             })
 
             matches = {
-                ids: queryResults.ids[0] as IDs,
+                ids: queryResults.ids[0],
                 metadatas: queryResults.metadatas[0] as (Metadata | null)[],
             }
         } else {
             matches = await col.get({
                 ids,
                 include: ['metadatas' as IncludeEnum],
-                where,
+                where: where as Where | undefined,
                 limit: limit == 0 ? 1 : limit,
             })
         }
@@ -382,7 +384,6 @@ export default class ChromaDatabase implements Database {
         }
 
         if (where?.$or && (where.$or as Where[]).length === 1) {
-            //@ts-ignore
             where = where.$or[0]
         }
 

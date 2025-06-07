@@ -6,15 +6,15 @@ import AbstractSpruceTest, {
     generateId,
     suite,
 } from '@sprucelabs/test-utils'
-import { ChromaClient, IncludeEnum, OllamaEmbeddingFunction } from 'chromadb'
-import { Collection } from '../../chroma.types'
+import { OllamaEmbeddingFunction } from '@chroma-core/ollama'
+import { ChromaClient, Collection, IncludeEnum } from 'chromadb'
 import ChromaDatabase from '../../ChromaDatabase'
 
 @suite()
 export default class ChromaDatabaseTest extends AbstractSpruceTest {
     private embedding = new OllamaEmbeddingFunction({
         model: 'llama3.2',
-        url: 'http://localhost:11434/api/embeddings',
+        url: 'http://localhost:11434',
     })
     private db!: Database
     private collectionName!: string

@@ -22,7 +22,7 @@ By default, the ChromaDabatase class will use llama3.2 hosted through Ollama to 
 Llama 3.2 is the newest version of Llama (as of this writing) that supports embeddings.
 
 1. Inside of terminal, run `ollama run llama3.2`
-2. You should be able to visit http://localhost:11434/api/embeddings and get a 404 response (this is because the route only accepts POST requests)
+2. You should be able to visit http://localhost:11434/api/embeddings and get a 405 response (this is because the route only accepts POST requests)
 
 ### Improving embeddings with `nomic-embed-text`
 
