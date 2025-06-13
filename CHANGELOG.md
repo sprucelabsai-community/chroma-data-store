@@ -1,3 +1,11 @@
+# [1.0.0](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.3.47...v1.0.0) (2025-06-13)
+
+
+### Breaking Changes
+
+* jest upgrade ([b7fcd32](https://github.com/sprucelabsai-community/chroma-data-store/commit/b7fcd32))
+* upgrade ([504a6ba](https://github.com/sprucelabsai-community/chroma-data-store/commit/504a6ba))
+
 ## [0.3.47](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.3.46...v0.3.47) (2025-06-01)
 
 ## [0.3.46](https://github.com/sprucelabsai-community/chroma-data-store/compare/v0.3.45...v0.3.46) (2025-05-26)
