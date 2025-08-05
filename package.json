@@ -43,9 +43,9 @@
     "generate.embeddings": "./support/generate_embeddings.sh"
   },
   "devDependencies": {
-    "@sprucelabs/esm-postbuild": "^7.0.20",
+    "@sprucelabs/esm-postbuild": "^7.0.21",
     "@sprucelabs/jest-json-reporter": "^9.0.32",
-    "@sprucelabs/resolve-path-aliases": "^3.0.16",
+    "@sprucelabs/resolve-path-aliases": "^3.0.17",
     "@sprucelabs/semantic-release": "^5.0.2",
     "@sprucelabs/test": "^10.0.13",
     "@sprucelabs/test-utils": "^6.0.48",
@@ -84,11 +84,11 @@
   },
   "dependencies": {
     "@chroma-core/ollama": "^0.1.7",
-    "@sprucelabs/data-stores": "^30.0.16",
+    "@sprucelabs/data-stores": "^30.0.17",
     "@sprucelabs/error": "^7.0.30",
     "@sprucelabs/schema": "^32.1.5",
     "@sprucelabs/spruce-core-schemas": "^41.0.52",
-    "@sprucelabs/spruce-skill-utils": "^32.0.56",
+    "@sprucelabs/spruce-skill-utils": "^32.0.57",
     "chromadb": "^3.0.10",
     "chromadb-default-embed": "^2.14.0",
     "ollama": "^0.5.16"
