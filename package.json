@@ -84,9 +84,9 @@
   },
   "dependencies": {
     "@chroma-core/ollama": "^0.1.7",
-    "@sprucelabs/data-stores": "^30.0.19",
+    "@sprucelabs/data-stores": "^30.0.20",
     "@sprucelabs/error": "^7.0.31",
-    "@sprucelabs/schema": "^32.1.7",
+    "@sprucelabs/schema": "^32.1.8",
     "@sprucelabs/spruce-core-schemas": "^41.0.54",
     "@sprucelabs/spruce-skill-utils": "^32.0.59",
     "chromadb": "^3.0.10",
