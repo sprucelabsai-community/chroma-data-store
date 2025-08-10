@@ -84,11 +84,11 @@
   },
   "dependencies": {
     "@chroma-core/ollama": "^0.1.7",
-    "@sprucelabs/data-stores": "^30.0.24",
+    "@sprucelabs/data-stores": "^30.0.25",
     "@sprucelabs/error": "^7.0.33",
-    "@sprucelabs/schema": "^32.1.11",
-    "@sprucelabs/spruce-core-schemas": "^41.0.58",
-    "@sprucelabs/spruce-skill-utils": "^32.0.64",
+    "@sprucelabs/schema": "^32.1.12",
+    "@sprucelabs/spruce-core-schemas": "^41.0.59",
+    "@sprucelabs/spruce-skill-utils": "^32.0.65",
     "chromadb": "^3.0.11",
     "chromadb-default-embed": "^2.14.0",
     "ollama": "^0.5.17"
