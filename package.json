@@ -89,7 +89,7 @@
     "@sprucelabs/schema": "^32.1.16",
     "@sprucelabs/spruce-core-schemas": "^41.0.63",
     "@sprucelabs/spruce-skill-utils": "^32.0.72",
-    "chromadb": "^3.0.12",
+    "chromadb": "^3.0.14",
     "chromadb-default-embed": "^2.14.0",
     "ollama": "^0.5.17"
   }
