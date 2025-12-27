@@ -17,6 +17,7 @@ import {
     Where,
     Metadata,
     Collection,
+    ChromaClientArgs,
 } from 'chromadb'
 import { GetResponse, WhereWithPrompt } from './chroma.types'
 import SpruceError from './errors/SpruceError'
@@ -24,8 +25,8 @@ import SpruceError from './errors/SpruceError'
 export default class ChromaDatabase implements Database {
     public static Class?: new (connectionString: string) => Database
     public static EmbeddingFunction = OllamaEmbeddingFunction
-
     private static embeddingFields?: Record<string, string[]>
+    public static ChromaClient?: typeof ChromaClient
 
     private connectionString: string
     private client!: ChromaClient
@@ -129,7 +130,17 @@ export default class ChromaDatabase implements Database {
     }
 
     public async connect(): Promise<void> {
-        this.client = new ChromaClient({ path: this.connectionString })
+        const connectionUrl = new URL(this.connectionString)
+
+        const args: Partial<ChromaClientArgs> = {
+            host: connectionUrl.hostname,
+            port: parseInt(connectionUrl.port, 10),
+            ssl: false,
+        }
+
+        debugger
+        this.client = new (ChromaDatabase.ChromaClient ?? ChromaClient)(args)
+
         try {
             await this.client.heartbeat()
         } catch (err: any) {

@@ -7,7 +7,12 @@ import AbstractSpruceTest, {
     suite,
 } from '@sprucelabs/test-utils'
 import { OllamaEmbeddingFunction } from '@chroma-core/ollama'
-import { ChromaClient, Collection, IncludeEnum } from 'chromadb'
+import {
+    ChromaClient,
+    ChromaClientArgs,
+    Collection,
+    IncludeEnum,
+} from 'chromadb'
 import ChromaDatabase from '../../ChromaDatabase'
 
 @suite()
@@ -25,6 +30,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         await super.beforeEach()
 
         ChromaDatabase.clearEmbeddingsFields()
+        delete ChromaDatabase.ChromaClient
 
         const { db } = await chromaConnect()
 
@@ -47,6 +53,27 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         errorAssert.assertError(err, 'MISSING_PARAMETERS', {
             parameters: ['connectionString'],
         })
+    }
+
+    @test('splits URL to host and port 1', 'my-chroma-host', 4321)
+    @test('splits URL to host and port 2', 'another-host.test', 1234)
+    protected async splitsUrlToHostAndPort(host: string, port: number) {
+        const input = `chroma://${host}:${port}`
+        const expected = {
+            host,
+            port,
+            ssl: false,
+        }
+
+        ChromaDatabase.ChromaClient = SpyChromaClient
+        this.db = new ChromaDatabase(input)
+        await this.db.connect()
+
+        assert.isEqualDeep(
+            SpyChromaClient.constructorOptions,
+            expected,
+            'ChromaClient was not constructed with expected options'
+        )
     }
 
     @test()
@@ -498,5 +525,17 @@ class SpyOllamaEmbeddingFunction extends OllamaEmbeddingFunction {
         super({ url, model })
         this.constructorOptions = { url, model }
         SpyOllamaEmbeddingFunction.instance = this
+    }
+}
+
+class SpyChromaClient extends ChromaClient {
+    public static constructorOptions?: Partial<ChromaClientArgs>
+    public constructor(options: Partial<ChromaClientArgs>) {
+        super(options)
+        SpyChromaClient.constructorOptions = options
+    }
+
+    public async heartbeat() {
+        return 1
     }
 }
