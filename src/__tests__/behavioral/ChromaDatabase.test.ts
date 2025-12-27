@@ -159,8 +159,8 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
             '!assertCantDropIndexWhenNoIndexExists',
             '!assertCantDropCompoundUniqueIndexThatDoesntExist',
             '!assertSyncingUniqueIndexesAddsMissingIndexes',
-            '!assertSyncingUniqueIndexesSkipsExistingIndexes',
-            '!assertSyncingUniqueIndexesRemovesExtraIndexes',
+            '!assertSyncingUniqueIndexesSkipsExistingUniqueIndexes',
+            '!assertSyncingUniqueIndexesRemovesExtraUniqueIndexes',
             '!assertUniqueIndexBlocksDuplicates',
             '!assertDuplicateKeyThrowsOnInsert',
             '!assertSettingUniqueIndexViolationThrowsSpruceError',
@@ -178,7 +178,8 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
             '!assertSyncIndexesDoesNotRemoveExisting',
             '!assertDuplicateFieldsWithMultipleUniqueIndexesWorkAsExpected',
             '!assertCanSyncIndexesWithoutPartialThenAgainWithProperlyUpdates',
-            '!assertSyncingIndexesDoesNotAddAndRemove',
+            '!assertCanHaveUniqueIndexOnFieldThatIsAlreadyInIndex',
+            '!assertSyncUniqueIndexesSkipsOnesThatExist',
             '!assertNestedFieldIndexUpdates',
             '!assertSyncingUniqueIndexesIsRaceProof',
             '!assertUpsertWithUniqueIndex',
@@ -452,9 +453,15 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
             prompt,
             `The generate prompt did not match!`
         )
+
+        //need to round the embeddings to avoid floating point precision issues
+        const roundEmbedding = (embedding: number[]) => {
+            return embedding.map((num) => parseFloat(num.toFixed(4)))
+        }
+
         assert.isEqualDeep(
-            match.embeddings?.[0],
-            expected[0],
+            roundEmbedding(match.embeddings?.[0]),
+            roundEmbedding(expected[0]),
             `The embeddings for ${JSON.stringify(values)} did not match based on the prompt '${prompt}'.`
         )
     }
