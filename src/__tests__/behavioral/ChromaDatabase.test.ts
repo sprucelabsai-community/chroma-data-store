@@ -409,14 +409,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         values: Record<string, any>,
         embeddingPrompt: string
     ) {
-        const record = await this.createOne(values)
-        const match = await this.getById(record.id)
-        const embeddings = await this.generateEmbeddings([embeddingPrompt])
-        assert.isEqualDeep(
-            match.embeddings?.[0],
-            embeddings[0],
-            `The embeddings for ${JSON.stringify(record)} did not match based on the prompt 'Hello'.`
-        )
+        await this.createOneAndAssertExpectedEmbeddings(embeddingPrompt, values)
     }
 
     private setEmbeddingFields(fields: string[], collectionName?: string) {
