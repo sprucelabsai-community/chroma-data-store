@@ -1,3 +1,18 @@
+## 3.0.0 (2026-02-18)
+
+* chore(auto-upgrade): Upgrade Tests Passed [auto-merge] ([fa55d19](https://github.com/sprucelabsai-community/chroma-data-store/commit/fa55d19))
+* chore(auto-upgrade): upgraded packages [upgrade-all] ([c53f17d](https://github.com/sprucelabsai-community/chroma-data-store/commit/c53f17d))
+* chore(auto-upgrade): upgraded packages [upgrade-all] ([f8f09c8](https://github.com/sprucelabsai-community/chroma-data-store/commit/f8f09c8))
+* patch: embedding rounding fix ([5e52416](https://github.com/sprucelabsai-community/chroma-data-store/commit/5e52416))
+* patch: fix test failures ([b2a6dfc](https://github.com/sprucelabsai-community/chroma-data-store/commit/b2a6dfc))
+* patch: host/port splitting, no ssl support ([7f9623f](https://github.com/sprucelabsai-community/chroma-data-store/commit/7f9623f))
+* patch: upgrade ([47949aa](https://github.com/sprucelabsai-community/chroma-data-store/commit/47949aa))
+* patch: upgrade dependencies and fix lint errors ([7f3fb0b](https://github.com/sprucelabsai-community/chroma-data-store/commit/7f3fb0b))
+* major: upgrade ([c6580a2](https://github.com/sprucelabsai-community/chroma-data-store/commit/c6580a2))
+* major: upgrade dependencies ([9f6a282](https://github.com/sprucelabsai-community/chroma-data-store/commit/9f6a282))
+* feat: add exports field for proper ESM support in Node.js ([600c627](https://github.com/sprucelabsai-community/chroma-data-store/commit/600c627))
+* Automated CI/CD permissions update ([3fbc199](https://github.com/sprucelabsai-community/chroma-data-store/commit/3fbc199))
+
 ## [2.0.25](https://github.com/sprucelabsai-community/chroma-data-store/compare/v2.0.24...v2.0.25) (2025-08-15)
 
 ## [2.0.24](https://github.com/sprucelabsai-community/chroma-data-store/compare/v2.0.23...v2.0.24) (2025-08-15)
