@@ -60,7 +60,7 @@
     "@sprucelabs/resolve-path-aliases": "^4.0.17",
     "@sprucelabs/semantic-release": "^6.0.0",
     "@sprucelabs/test": "^11.1.4",
-    "@sprucelabs/test-utils": "^7.2.11",
+    "@sprucelabs/test-utils": "^7.2.12",
     "@types/node": "^25.2.3",
     "chokidar-cli": "^3.0.0",
     "eslint": "^10.0.0",
@@ -96,11 +96,11 @@
   },
   "dependencies": {
     "@chroma-core/ollama": "^0.1.8",
-    "@sprucelabs/data-stores": "^32.0.7",
+    "@sprucelabs/data-stores": "^32.0.8",
     "@sprucelabs/error": "^8.1.9",
-    "@sprucelabs/schema": "^33.2.5",
+    "@sprucelabs/schema": "^33.2.6",
     "@sprucelabs/spruce-core-schemas": "^42.1.11",
-    "@sprucelabs/spruce-skill-utils": "^34.0.12",
+    "@sprucelabs/spruce-skill-utils": "^34.0.13",
     "chromadb": "^3.3.0",
     "chromadb-default-embed": "^2.14.0",
     "ollama": "^0.6.3"
