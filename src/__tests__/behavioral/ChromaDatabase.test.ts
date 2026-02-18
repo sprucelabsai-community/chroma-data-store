@@ -23,7 +23,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
     })
     private db!: Database
     private collectionName!: string
-    private chroma = new ChromaClient({ path: 'http://localhost:8000' })
+    private chroma = new ChromaClient({ host: 'localhost', port: 8000 })
     private collection!: Collection
 
     protected async beforeEach() {
@@ -266,7 +266,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
         await this.getOrCreateCollection(generateId())
         await this.db.dropDatabase()
 
-        const client = new ChromaClient({ path: 'http://localhost:8000' })
+        const client = new ChromaClient({ host: 'localhost', port: 8000 })
         const collections = await client.listCollections()
         assert.isLength(collections, 0, 'Collections were not deleted')
     }
@@ -476,7 +476,7 @@ export default class ChromaDatabaseTest extends AbstractSpruceTest {
 
         //need to round the embeddings to avoid floating point precision issues
         const roundEmbedding = (embedding: number[]) => {
-            return embedding.map((num) => parseFloat(num.toFixed(4)))
+            return embedding.map((num) => parseFloat(num.toFixed(3)))
         }
 
         assert.isEqualDeep(

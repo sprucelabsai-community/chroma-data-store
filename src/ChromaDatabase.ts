@@ -138,7 +138,6 @@ export default class ChromaDatabase implements Database {
             ssl: false,
         }
 
-        debugger
         this.client = new (ChromaDatabase.ChromaClient ?? ChromaClient)(args)
 
         try {
