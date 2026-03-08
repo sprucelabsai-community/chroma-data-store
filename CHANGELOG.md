@@ -1,3 +1,8 @@
+## <small>3.0.7 (2026-03-08)</small>
+
+* chore(auto-upgrade): Upgrade Tests Passed [auto-merge] ([6cf0b1a](https://github.com/sprucelabsai-community/chroma-data-store/commit/6cf0b1a))
+* chore(auto-upgrade): upgraded packages [upgrade-all] ([afdc5ec](https://github.com/sprucelabsai-community/chroma-data-store/commit/afdc5ec))
+
 ## <small>3.0.6 (2026-02-24)</small>
 
 * chore(auto-upgrade): Upgrade Tests Passed [auto-merge] ([1dcee7e](https://github.com/sprucelabsai-community/chroma-data-store/commit/1dcee7e))
