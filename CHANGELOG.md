@@ -1,3 +1,7 @@
+## <small>3.0.15 (2026-04-09)</small>
+
+* chore: add rootDir and types to tsconfig for TypeScript 6 compatibility ([2e89626](https://github.com/sprucelabsai-community/chroma-data-store/commit/2e89626))
+
 ## <small>3.0.14 (2026-03-13)</small>
 
 * chore(auto-upgrade): Upgrade Tests Passed [auto-merge] ([3963dff](https://github.com/sprucelabsai-community/chroma-data-store/commit/3963dff))
